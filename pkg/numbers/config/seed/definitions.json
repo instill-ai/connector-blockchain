@@ -18,7 +18,7 @@
           "license",
           "asset_type",
           "metadata_texts",
-          "metadata_json",
+          "metadata_structured_data",
           "metadata_metadata"
         ],
         "additionalProperties": false,
@@ -51,9 +51,9 @@
             "type": "boolean",
             "default": false
           },
-          "metadata_json": {
-            "title": "Add input json to Blockchain's metadata",
-            "description": "Add the json input as the metadata to Blockchain",
+          "metadata_structured_data": {
+            "title": "Add input structured_data to Blockchain's metadata",
+            "description": "Add the structured_data input as the metadata to Blockchain",
             "type": "boolean",
             "default": false
           },
