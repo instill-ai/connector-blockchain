@@ -1,0 +1,74 @@
+[
+  {
+    "custom": false,
+    "documentationUrl": "https://www.instill.tech/docs/connectors/numbers-blockchain-nit",
+    "icon": "",
+    "iconUrl": "",
+    "id": "numbers-blockchain-nit",
+    "public": true,
+    "spec": {
+      "documentationUrl": "https://www.instill.tech/docs/connectors/numbers-blockchain-nit",
+      "connectionSpecification": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Numbers Protocol Blockchain Connector Spec",
+        "type": "object",
+        "required": [
+          "capture_token",
+          "creator_name",
+          "license",
+          "asset_type",
+          "metadata_texts",
+          "metadata_json",
+          "metadata_metadata"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "capture_token": {
+            "title": "Capture token",
+            "description": "Capture token from NumbersProtocol",
+            "type": "string"
+          },
+          "creator_name": {
+            "title": "Creator Name",
+            "description": "Name of the creator who owns the Web3 asset",
+            "type": "string"
+          },
+          "license": {
+            "title": "License",
+            "description": "License of the Web3 asset",
+            "type": "string"
+          },
+          "asset_type": {
+            "title": "Asset type",
+            "description": "The type of asset to be added to Blockchain",
+            "type": "string",
+            "default": "images",
+            "enum": [ "images" ]
+          },
+          "metadata_texts": {
+            "title": "Add input texts to Blockchain's metadata",
+            "description": "Add the texts input as the metadata to Blockchain",
+            "type": "boolean",
+            "default": false
+          },
+          "metadata_json": {
+            "title": "Add input json to Blockchain's metadata",
+            "description": "Add the json input as the metadata to Blockchain",
+            "type": "boolean",
+            "default": false
+          },
+          "metadata_metadata": {
+            "title": "Add input metadata to Blockchain's metadata",
+            "description": "Add the metadata input as the metadata to Blockchain",
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "title": "NIT",
+    "tombstone": false,
+    "uid": "70d8664a-d512-4517-a5e8-5d4da81756a7",
+    "vendorAttributes": {}
+  }
+]
