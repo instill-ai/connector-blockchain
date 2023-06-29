@@ -28,7 +28,7 @@ const ApiUrlPin = "https://eoqctv92ahgrcif.m.pipedream.net"
 const ApiUrlCommit = "https://eo883tj75azolos.m.pipedream.net"
 const ApiUrlMe = "https://api.numbersprotocol.io/api/v3/auth/users/me"
 
-const venderName = "numbers"
+const vendorName = "numbers"
 
 //go:embed config/seed/definitions.json
 var definitionJson []byte
@@ -75,7 +75,7 @@ func Init(logger *zap.Logger, options ConnectorOptions) base.IConnector {
 	once.Do(func() {
 
 		loader := configLoader.InitJSONSchema(logger)
-		connDefs, err := loader.Load(venderName, connectorPB.ConnectorType_CONNECTOR_TYPE_BLOCKCHAIN, definitionJson)
+		connDefs, err := loader.Load(vendorName, connectorPB.ConnectorType_CONNECTOR_TYPE_BLOCKCHAIN, definitionJson)
 		if err != nil {
 			panic(err)
 		}
