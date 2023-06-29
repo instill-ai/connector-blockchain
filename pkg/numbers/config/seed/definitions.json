@@ -26,7 +26,8 @@
           "capture_token": {
             "title": "Capture token",
             "description": "Capture token from NumbersProtocol",
-            "type": "string"
+            "type": "string",
+            "credential_field": true
           },
           "creator_name": {
             "title": "Creator Name",

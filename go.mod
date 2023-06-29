@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/instill-ai/connector v0.0.0-20230628152420-4adf6bedec28
+	github.com/instill-ai/connector v0.0.0-20230629151544-f181ade74915
 	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230628145744-8bd74278dff2
 	go.uber.org/zap v1.24.0
 	google.golang.org/protobuf v1.30.0
