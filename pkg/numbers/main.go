@@ -229,7 +229,7 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 	var output []*connectorPB.DataPayload
 
 	for _, dataPayload := range inputs {
-		imageGenerationModel := dataPayload.GetMetadata().GetFields()["imageGenerationModel"].GetStringValue()
+		// imageGenerationModel := dataPayload.GetMetadata().GetFields()["imageGenerationModel"].GetStringValue()
 		prompt := dataPayload.GetTexts()[0]
 		var assetCids []*structpb.Value
 		var assetUrls []*structpb.Value
@@ -248,7 +248,7 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 				AssetCreator:          con.getCreatorName(),
 				Abstract:              "Image Generation",
 				Custom: CommitCustom{
-					GeneratedBy:      imageGenerationModel,
+					GeneratedBy:      "instill-ai",
 					GeneratedThrough: "https://console.instill.tech",
 					Prompt:           prompt,
 					CreatorWallet:    "",
@@ -302,4 +302,8 @@ func (con *Connection) Test() (connectorPB.Connector_State, error) {
 		return connectorPB.Connector_STATE_CONNECTED, nil
 	}
 	return connectorPB.Connector_STATE_ERROR, nil
+}
+
+func (con *Connection) GetTaskName() (string, error) {
+	return "TASK_UNSPECIFIED", nil
 }

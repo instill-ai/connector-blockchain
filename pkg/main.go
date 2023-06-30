@@ -55,6 +55,6 @@ func (c *Connector) CreateConnection(defUid uuid.UUID, config *structpb.Struct, 
 	case c.numbersConnector.HasUid(defUid):
 		return c.numbersConnector.CreateConnection(defUid, config, logger)
 	default:
-		return nil, fmt.Errorf("no destinationConnector uid: %s", defUid)
+		return nil, fmt.Errorf("no blockchainConnector uid: %s", defUid)
 	}
 }
