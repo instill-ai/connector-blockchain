@@ -2,7 +2,7 @@
   {
     "custom": false,
     "documentationUrl": "https://www.instill.tech/docs/connectors/numbers-blockchain-nit",
-    "icon": "",
+    "icon": "numbers.svg",
     "iconUrl": "",
     "id": "numbers-blockchain-nit",
     "public": true,
