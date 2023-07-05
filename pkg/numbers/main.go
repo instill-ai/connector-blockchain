@@ -54,11 +54,12 @@ type CommitCustomLicense struct {
 	Name string `json:"name"`
 }
 type CommitCustom struct {
-	GeneratedBy      string              `json:"generatedBy"`
 	GeneratedThrough string              `json:"generatedThrough"`
-	Prompt           string              `json:"prompt"`
+	Texts            []string            `json:"texts"`
 	CreatorWallet    string              `json:"creatorWallet"`
 	License          CommitCustomLicense `json:"license"`
+	Metadata         interface{}         `json:"metadata"`
+	StructuredData   interface{}         `json:"structuredData"`
 }
 type Commit struct {
 	AssetCid              string       `json:"assetCid"`
@@ -97,11 +98,17 @@ func Init(logger *zap.Logger, options ConnectorOptions) base.IConnector {
 }
 
 func (con *Connection) getToken() string {
-	return fmt.Sprintf("token %s", con.config.GetFields()["captureToken"].GetStringValue())
+	return fmt.Sprintf("token %s", con.config.GetFields()["capture_token"].GetStringValue())
 }
 
-func (con *Connection) getCreatorName() string {
-	return con.config.GetFields()["creatorName"].GetStringValue()
+func (con *Connection) needUploadTextsToMetadata() bool {
+	return con.config.GetFields()["metadata_texts"].GetBoolValue()
+}
+func (con *Connection) needUploadStructuredDataToMetadata() bool {
+	return con.config.GetFields()["metadata_structured_data"].GetBoolValue()
+}
+func (con *Connection) needUploadMetadataToMetadata() bool {
+	return con.config.GetFields()["metadata_metadata"].GetBoolValue()
 }
 
 func (con *Connection) getLicense() string {
@@ -114,8 +121,9 @@ func (con *Connection) pinFile(data []byte) (string, string, error) {
 
 	w := multipart.NewWriter(&b)
 	var fw io.Writer
+	var err error
 
-	if _, err := w.CreateFormFile("file", "file.jpg"); err != nil {
+	if fw, err = w.CreateFormFile("file", "file.jpg"); err != nil {
 		return "", "", err
 	}
 
@@ -229,15 +237,31 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 	var output []*connectorPB.DataPayload
 
 	for _, dataPayload := range inputs {
-		// imageGenerationModel := dataPayload.GetMetadata().GetFields()["imageGenerationModel"].GetStringValue()
-		prompt := dataPayload.GetTexts()[0]
 		var assetCids []*structpb.Value
 		var assetUrls []*structpb.Value
-		for _, images := range dataPayload.Images {
+		for _, image := range dataPayload.Images {
 
-			cid, sha256hash, err := con.pinFile(images)
+			cid, sha256hash, err := con.pinFile(image)
 			if err != nil {
 				return nil, err
+			}
+
+			commitCustom := CommitCustom{
+				GeneratedThrough: "https://console.instill.tech",
+				CreatorWallet:    "",
+				License: CommitCustomLicense{
+					Name: dataPayload.Metadata.Fields["license"].GetStringValue(),
+				},
+			}
+
+			if con.needUploadTextsToMetadata() {
+				commitCustom.Texts = dataPayload.Texts
+			}
+			if con.needUploadStructuredDataToMetadata() {
+				commitCustom.Metadata = dataPayload.Metadata
+			}
+			if con.needUploadMetadataToMetadata() {
+				commitCustom.StructuredData = dataPayload.StructuredData
 			}
 
 			assetCid, _, err := con.commit(Commit{
@@ -245,18 +269,10 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 				AssetSha256:           sha256hash,
 				EncodingFormat:        "image/jpeg",
 				AssetTimestampCreated: time.Now().Unix(),
-				AssetCreator:          con.getCreatorName(),
+				AssetCreator:          dataPayload.Metadata.Fields["creator_name"].GetStringValue(),
 				Abstract:              "Image Generation",
-				Custom: CommitCustom{
-					GeneratedBy:      "instill-ai",
-					GeneratedThrough: "https://console.instill.tech",
-					Prompt:           prompt,
-					CreatorWallet:    "",
-					License: CommitCustomLicense{
-						Name: con.getLicense(),
-					},
-				},
-				Testnet: false,
+				Custom:                commitCustom,
+				Testnet:               false,
 			})
 
 			if err != nil {
@@ -267,6 +283,7 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 		}
 
 		output = append(output, &connectorPB.DataPayload{
+			DataMappingIndex: dataPayload.DataMappingIndex,
 			Metadata: &structpb.Struct{
 				Fields: map[string]*structpb.Value{
 					"assetUrls": structpb.NewListValue(&structpb.ListValue{
