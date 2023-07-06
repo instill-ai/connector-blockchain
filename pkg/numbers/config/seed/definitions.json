@@ -1,13 +1,13 @@
 [
   {
     "custom": false,
-    "documentationUrl": "https://www.instill.tech/docs/connectors/numbers-blockchain-nit",
+    "documentationUrl": "https://www.instill.tech/docs/blockchain-connectors/numbers",
     "icon": "numbers.svg",
     "iconUrl": "",
     "id": "blockchain-numbers",
     "public": true,
     "spec": {
-      "documentationUrl": "https://www.instill.tech/docs/connectors/numbers-blockchain-nit",
+      "documentationUrl": "https://www.instill.tech/docs/blockchain-connectors/numbers",
       "connectionSpecification": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "Numbers Protocol Blockchain Connector Spec",
@@ -23,39 +23,39 @@
         "properties": {
           "capture_token": {
             "title": "Capture token",
-            "description": "Capture token from NumbersProtocol",
+            "description": "Fill your Capture token in the Capture App. To access your tokens, you need a Capture App account and you can sign in with email or wallet to acquire the Capture Token.",
             "type": "string",
             "credential_field": true
           },
           "asset_type": {
             "title": "Asset type",
-            "description": "The type of asset to be added to Blockchain",
+            "description": "The type of asset to be added to the Blockchain.",
             "type": "string",
             "default": "images",
             "enum": [ "images" ]
           },
           "metadata_texts": {
-            "title": "Add input texts to Blockchain's metadata",
-            "description": "Add the texts input as the metadata to Blockchain",
+            "title": "'texts' input as asset metadata",
+            "description": "Include the `texts` input in the asset metadata on the Blockchain.",
             "type": "boolean",
             "default": false
           },
           "metadata_structured_data": {
-            "title": "Add input structured_data to Blockchain's metadata",
-            "description": "Add the structured_data input as the metadata to Blockchain",
+            "title": "'structured_data' input as asset metadata",
+            "description": "Include the `structured_data` input in the asset metadata on the Blockchain.",
             "type": "boolean",
             "default": false
           },
           "metadata_metadata": {
-            "title": "Add input metadata to Blockchain's metadata",
-            "description": "Add the metadata input as the metadata to Blockchain",
+            "title": "'metadata' input as asset metadata",
+            "description": "Include the `metadata` input in the asset metadata on the Blockchain.",
             "type": "boolean",
-            "default": false
+            "default": true
           }
         }
       }
     },
-    "title": "NumbersProtocol",
+    "title": "Numbers Protocol",
     "tombstone": false,
     "uid": "70d8664a-d512-4517-a5e8-5d4da81756a7",
     "vendorAttributes": {}
