@@ -1,13 +1,13 @@
 [
   {
     "custom": false,
-    "documentationUrl": "https://www.instill.tech/docs/blockchain-connectors/numbers",
+    "documentationUrl": "https://www.instill.tech/docs/vdp/blockchain-connectors/numbers",
     "icon": "numbers.svg",
     "iconUrl": "",
     "id": "blockchain-numbers",
     "public": true,
     "spec": {
-      "documentationUrl": "https://www.instill.tech/docs/blockchain-connectors/numbers",
+      "documentationUrl": "https://www.instill.tech/docs/vdp/blockchain-connectors/numbers",
       "connectionSpecification": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "Numbers Protocol Blockchain Connector Spec",
