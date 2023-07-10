@@ -258,10 +258,10 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 				commitCustom.Texts = dataPayload.Texts
 			}
 			if con.needUploadStructuredDataToMetadata() {
-				commitCustom.Metadata = dataPayload.Metadata
+				commitCustom.StructuredData = dataPayload.StructuredData
 			}
 			if con.needUploadMetadataToMetadata() {
-				commitCustom.StructuredData = dataPayload.StructuredData
+				commitCustom.Metadata = dataPayload.Metadata
 			}
 
 			assetCid, _, err := con.commit(Commit{
