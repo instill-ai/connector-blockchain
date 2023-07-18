@@ -149,11 +149,12 @@ func (con *Connection) pinFile(data []byte) (string, string, error) {
 
 	client := &http.Client{}
 	res, err := client.Do(req)
+	if res != nil && res.Body != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return "", "", err
 	}
-
-	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
@@ -190,11 +191,12 @@ func (con *Connection) commit(commit Commit) (string, string, error) {
 
 	client := &http.Client{}
 	res, err := client.Do(req)
+	if res != nil && res.Body != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return "", "", err
 	}
-
-	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
@@ -312,6 +314,9 @@ func (con *Connection) Test() (connectorPB.Connector_State, error) {
 
 	client := &http.Client{}
 	res, err := client.Do(req)
+	if res != nil && res.Body != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return connectorPB.Connector_STATE_ERROR, nil
 	}
