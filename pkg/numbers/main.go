@@ -51,17 +51,21 @@ type Connection struct {
 }
 
 type CommitCustomLicense struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	Document string `json:"document"`
 }
 type CommitCustom struct {
 	GeneratedThrough string              `json:"generatedThrough"`
-	Texts            []string            `json:"texts"`
+	GeneratedBy      string              `json:"generatedBy"`
 	CreatorWallet    string              `json:"creatorWallet"`
 	License          CommitCustomLicense `json:"license"`
-	Metadata         interface{}         `json:"metadata"`
-	StructuredData   interface{}         `json:"structuredData"`
+	// Additional Fields
+	Texts          []string    `json:"texts"`
+	Metadata       interface{} `json:"metadata"`
+	StructuredData interface{} `json:"structuredData"`
 }
 type Commit struct {
+	CaptureToken          string       `json:"captureToken"`
 	AssetCid              string       `json:"assetCid"`
 	AssetSha256           string       `json:"assetSha256"`
 	EncodingFormat        string       `json:"encodingFormat"`
@@ -111,11 +115,7 @@ func (con *Connection) needUploadMetadataToMetadata() bool {
 	return con.config.GetFields()["metadata_metadata"].GetBoolValue()
 }
 
-func (con *Connection) getLicense() string {
-	return con.config.GetFields()["license"].GetStringValue()
-}
-
-func (con *Connection) pinFile(data []byte) (string, string, error) {
+func (con *Connection) pinFile(data []byte, token string) (string, string, error) {
 
 	var b bytes.Buffer
 
@@ -145,7 +145,11 @@ func (con *Connection) pinFile(data []byte) (string, string, error) {
 		return "", "", err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.Header.Set("Authorization", con.getToken())
+	if token == "" {
+		req.Header.Set("Authorization", con.getToken())
+	} else {
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+	}
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -169,25 +173,32 @@ func (con *Connection) pinFile(data []byte) (string, string, error) {
 			return "", "", fmt.Errorf("pinFile failed")
 		}
 
+	} else {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return "", "", err
+		}
+		return "", "", fmt.Errorf(string(bodyBytes))
 	}
-	return "", "", fmt.Errorf("pinFile failed")
-
 }
 
-func (con *Connection) commit(commit Commit) (string, string, error) {
+func (con *Connection) commit(commit Commit, token string) (string, string, error) {
 
 	marshalled, err := json.Marshal(commit)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 
-	// return "", "", nil
 	req, err := http.NewRequest("POST", ApiUrlCommit, bytes.NewReader(marshalled))
 	if err != nil {
 		return "", "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", con.getToken())
+	if token == "" {
+		req.Header.Set("Authorization", con.getToken())
+	} else {
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+	}
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -220,8 +231,13 @@ func (con *Connection) commit(commit Commit) (string, string, error) {
 		}
 		return assetCid, assetTreeCid, nil
 
+	} else {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return "", "", err
+		}
+		return "", "", fmt.Errorf(string(bodyBytes))
 	}
-	return "", "", fmt.Errorf("commit failed")
 
 }
 
@@ -243,16 +259,16 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 		var assetUrls []*structpb.Value
 		for _, image := range dataPayload.Images {
 
-			cid, sha256hash, err := con.pinFile(image)
-			if err != nil {
-				return nil, err
-			}
-
+			paramFields := dataPayload.Metadata.GetFields()["numbers"].GetStructValue().GetFields()
+			paramCustomFields := paramFields["custom"].GetStructValue().GetFields()
+			paramCustomLicenseFields := paramCustomFields["license"].GetStructValue().GetFields()
 			commitCustom := CommitCustom{
 				GeneratedThrough: "https://console.instill.tech",
-				CreatorWallet:    "",
+				GeneratedBy:      paramCustomFields["generated_by"].GetStringValue(),
+				CreatorWallet:    paramCustomFields["creator_wallet"].GetStringValue(),
 				License: CommitCustomLicense{
-					Name: dataPayload.Metadata.Fields["license"].GetStringValue(),
+					Name:     paramCustomLicenseFields["name"].GetStringValue(),
+					Document: paramCustomLicenseFields["document"].GetStringValue(),
 				},
 			}
 
@@ -263,19 +279,27 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 				commitCustom.StructuredData = dataPayload.StructuredData
 			}
 			if con.needUploadMetadataToMetadata() {
-				commitCustom.Metadata = dataPayload.Metadata
+				metadata := dataPayload.Metadata
+				delete(metadata.GetFields(), "numbers")
+				commitCustom.Metadata = metadata
+			}
+
+			cid, sha256hash, err := con.pinFile(image, paramFields["capture_token"].GetStringValue())
+			if err != nil {
+				return nil, err
 			}
 
 			assetCid, _, err := con.commit(Commit{
 				AssetCid:              cid,
 				AssetSha256:           sha256hash,
-				EncodingFormat:        "image/jpeg",
+				EncodingFormat:        http.DetectContentType(image),
 				AssetTimestampCreated: time.Now().Unix(),
-				AssetCreator:          dataPayload.Metadata.Fields["creator_name"].GetStringValue(),
-				Abstract:              "Image Generation",
+				AssetCreator:          paramFields["asset_creator"].GetStringValue(),
+				Abstract:              paramFields["abstract"].GetStringValue(),
+				CaptureToken:          paramFields["capture_token"].GetStringValue(),
 				Custom:                commitCustom,
 				Testnet:               false,
-			})
+			}, paramFields["capture_token"].GetStringValue())
 
 			if err != nil {
 				return nil, err
@@ -288,10 +312,10 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 			DataMappingIndex: dataPayload.DataMappingIndex,
 			Metadata: &structpb.Struct{
 				Fields: map[string]*structpb.Value{
-					"assetUrls": structpb.NewListValue(&structpb.ListValue{
+					"asset_urls": structpb.NewListValue(&structpb.ListValue{
 						Values: assetUrls,
 					}),
-					"assetCids": structpb.NewListValue(&structpb.ListValue{
+					"asset_cids": structpb.NewListValue(&structpb.ListValue{
 						Values: assetCids,
 					}),
 				},
