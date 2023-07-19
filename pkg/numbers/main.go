@@ -151,7 +151,10 @@ func (con *Connection) pinFile(data []byte, token string) (string, string, error
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
 	}
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		DisableKeepAlives: true,
+	}
+	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if res != nil && res.Body != nil {
 		defer res.Body.Close()
@@ -200,7 +203,10 @@ func (con *Connection) commit(commit Commit, token string) (string, string, erro
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
 	}
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		DisableKeepAlives: true,
+	}
+	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if res != nil && res.Body != nil {
 		defer res.Body.Close()
@@ -336,7 +342,10 @@ func (con *Connection) Test() (connectorPB.Connector_State, error) {
 	}
 	req.Header.Set("Authorization", con.getToken())
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		DisableKeepAlives: true,
+	}
+	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if res != nil && res.Body != nil {
 		defer res.Body.Close()
