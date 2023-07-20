@@ -10,8 +10,8 @@ github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 h1:gDLXvp5S9izjldquuoAhDzccbskOL6tDC5jMSyx3zxE=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2/go.mod h1:7pdNwVWBBHGiCxa9lAszqCJMbfTISJ7oMftp8+UGV08=
-github.com/instill-ai/connector v0.1.0-alpha.0.20230717104353-9833ed07cd2e h1:DJP5mRLcT1ViNgGCgn/orzMlFLQrv1ySPN0OVKid6UA=
-github.com/instill-ai/connector v0.1.0-alpha.0.20230717104353-9833ed07cd2e/go.mod h1:3kLmWi+0vdp4PfjRrolQQwOXU55HG1e1N9J7y83MBhw=
+github.com/instill-ai/connector v0.2.0-alpha h1:9elA+XUIuxmIfa9gUzAFkuV/mjJQZfw1EEIGr8wFaiw=
+github.com/instill-ai/connector v0.2.0-alpha/go.mod h1:3kLmWi+0vdp4PfjRrolQQwOXU55HG1e1N9J7y83MBhw=
 github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230717101605-87e3b68be4cf h1:E2D/N87Xcv+srNlr6BO8NvaLnLE+/F5QXgW140RWNVY=
 github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230717101605-87e3b68be4cf/go.mod h1:qsq5ecnA1xi2rLnVQFo/9xksA7I7wQu8c7rqM5xbIrQ=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
