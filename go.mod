@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/instill-ai/connector v0.2.0-alpha
-	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230717101605-87e3b68be4cf
+	github.com/instill-ai/connector v0.2.0-alpha.0.20230724051505-16610a2b30d4
+	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230724032341-29e39edfce64
 	go.uber.org/zap v1.24.0
 	google.golang.org/protobuf v1.30.0
 )
