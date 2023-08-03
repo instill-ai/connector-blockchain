@@ -56,17 +56,19 @@ type CommitCustomLicense struct {
 	Document string `json:"document"`
 }
 type CommitCustom struct {
-	GeneratedThrough string              `json:"generatedThrough"`
-	GeneratedBy      string              `json:"generatedBy"`
-	CreatorWallet    string              `json:"creatorWallet"`
-	License          CommitCustomLicense `json:"license"`
+	GeneratedThrough  string              `json:"generatedThrough"`
+	GeneratedBy       string              `json:"generatedBy"`
+	CreatorWallet     string              `json:"creatorWallet"`
+	License           CommitCustomLicense `json:"license"`
+	DigitalSourceType string              `json:"digitalSourceType"`
+	MiningPreference  string              `json:"miningPreference"`
+
 	// Additional Fields
 	Texts          []string    `json:"texts"`
 	Metadata       interface{} `json:"metadata"`
 	StructuredData interface{} `json:"structuredData"`
 }
 type Commit struct {
-	CaptureToken          string       `json:"captureToken"`
 	AssetCid              string       `json:"assetCid"`
 	AssetSha256           string       `json:"assetSha256"`
 	EncodingFormat        string       `json:"encodingFormat"`
@@ -270,9 +272,11 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 			paramCustomFields := paramFields["custom"].GetStructValue().GetFields()
 			paramCustomLicenseFields := paramCustomFields["license"].GetStructValue().GetFields()
 			commitCustom := CommitCustom{
-				GeneratedThrough: "https://console.instill.tech",
-				GeneratedBy:      paramCustomFields["generated_by"].GetStringValue(),
-				CreatorWallet:    paramCustomFields["creator_wallet"].GetStringValue(),
+				GeneratedThrough:  "https://console.instill.tech",
+				GeneratedBy:       paramCustomFields["generated_by"].GetStringValue(),
+				CreatorWallet:     paramCustomFields["creator_wallet"].GetStringValue(),
+				DigitalSourceType: paramCustomFields["digital_source_type"].GetStringValue(),
+				MiningPreference:  paramCustomFields["mining_preference"].GetStringValue(),
 				License: CommitCustomLicense{
 					Name:     paramCustomLicenseFields["name"].GetStringValue(),
 					Document: paramCustomLicenseFields["document"].GetStringValue(),
@@ -303,7 +307,6 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 				AssetTimestampCreated: time.Now().Unix(),
 				AssetCreator:          paramFields["asset_creator"].GetStringValue(),
 				Abstract:              paramFields["abstract"].GetStringValue(),
-				CaptureToken:          paramFields["capture_token"].GetStringValue(),
 				Custom:                commitCustom,
 				Testnet:               false,
 			}, paramFields["capture_token"].GetStringValue())
