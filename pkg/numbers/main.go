@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"sync"
 	"time"
 
 	_ "embed"
+	b64 "encoding/base64"
 
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
@@ -21,7 +21,6 @@ import (
 	"github.com/instill-ai/connector/pkg/base"
 	"github.com/instill-ai/connector/pkg/configLoader"
 
-	taskPB "github.com/instill-ai/protogen-go/common/task/v1alpha"
 	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 )
 
@@ -31,7 +30,7 @@ const ApiUrlMe = "https://api.numbersprotocol.io/api/v3/auth/users/me"
 
 const vendorName = "numbers"
 
-//go:embed config/seed/definitions.json
+//go:embed config/definitions.json
 var definitionJson []byte
 
 var once sync.Once
@@ -47,36 +46,50 @@ type ConnectorOptions struct{}
 type Connection struct {
 	base.BaseConnection
 	connector *Connector
-	defUid    uuid.UUID
-	config    *structpb.Struct
 }
 
 type CommitCustomLicense struct {
-	Name     string `json:"name"`
-	Document string `json:"document"`
+	Name     *string `json:"name,omitempty"`
+	Document *string `json:"document,omitempty"`
 }
 type CommitCustom struct {
-	GeneratedThrough  string              `json:"generatedThrough"`
-	GeneratedBy       string              `json:"generatedBy"`
-	CreatorWallet     string              `json:"creatorWallet"`
-	License           CommitCustomLicense `json:"license"`
-	DigitalSourceType string              `json:"digitalSourceType"`
-	MiningPreference  string              `json:"miningPreference"`
-
-	// Additional Fields
-	Texts          []string    `json:"texts"`
-	Metadata       interface{} `json:"metadata"`
-	StructuredData interface{} `json:"structuredData"`
+	DigitalSourceType *string              `json:"digitalSourceType,omitempty"`
+	MiningPreference  *string              `json:"miningPreference,omitempty"`
+	GeneratedThrough  string               `json:"generatedThrough"`
+	GeneratedBy       *string              `json:"generatedBy,omitempty"`
+	CreatorWallet     *string              `json:"creatorWallet,omitempty"`
+	License           *CommitCustomLicense `json:"license,omitempty"`
 }
 type Commit struct {
-	AssetCid              string       `json:"assetCid"`
-	AssetSha256           string       `json:"assetSha256"`
-	EncodingFormat        string       `json:"encodingFormat"`
-	AssetTimestampCreated int64        `json:"assetTimestampCreated"`
-	AssetCreator          string       `json:"assetCreator"`
-	Abstract              string       `json:"abstract"`
-	Custom                CommitCustom `json:"custom"`
-	Testnet               bool         `json:"testnet"`
+	AssetCid              string        `json:"assetCid"`
+	AssetSha256           string        `json:"assetSha256"`
+	EncodingFormat        string        `json:"encodingFormat"`
+	AssetTimestampCreated int64         `json:"assetTimestampCreated"`
+	AssetCreator          *string       `json:"assetCreator,omitempty"`
+	Abstract              *string       `json:"abstract,omitempty"`
+	Custom                *CommitCustom `json:"custom,omitempty"`
+	Testnet               bool          `json:"testnet"`
+}
+
+type Input struct {
+	Images       []string `json:"images"`
+	AssetCreator *string  `json:"asset_creator,omitempty"`
+	Abstract     *string  `json:"abstract,omitempty"`
+	Custom       *struct {
+		DigitalSourceType *string `json:"digital_source_type,omitempty"`
+		MiningPreference  *string `json:"mining_preference,omitempty"`
+		GeneratedThrough  *string `json:"generated_through,omitempty"`
+		GeneratedBy       *string `json:"generated_by,omitempty"`
+		CreatorWallet     *string `json:"creator_wallet,omitempty"`
+		License           *struct {
+			Name     *string `json:"name,omitempty"`
+			Document *string `json:"document,omitempty"`
+		} `json:"license,omitempty"`
+	} `json:"custom,omitempty"`
+}
+
+type Output struct {
+	AssetUrls []string `json:"asset_urls"`
 }
 
 func Init(logger *zap.Logger, options ConnectorOptions) base.IConnector {
@@ -105,20 +118,10 @@ func Init(logger *zap.Logger, options ConnectorOptions) base.IConnector {
 }
 
 func (con *Connection) getToken() string {
-	return fmt.Sprintf("token %s", con.config.GetFields()["capture_token"].GetStringValue())
+	return fmt.Sprintf("token %s", con.Config.GetFields()["capture_token"].GetStringValue())
 }
 
-func (con *Connection) needUploadTextsToMetadata() bool {
-	return con.config.GetFields()["metadata_texts"].GetBoolValue()
-}
-func (con *Connection) needUploadStructuredDataToMetadata() bool {
-	return con.config.GetFields()["metadata_structured_data"].GetBoolValue()
-}
-func (con *Connection) needUploadMetadataToMetadata() bool {
-	return con.config.GetFields()["metadata_metadata"].GetBoolValue()
-}
-
-func (con *Connection) pinFile(data []byte, token string) (string, string, error) {
+func (con *Connection) pinFile(data []byte) (string, string, error) {
 
 	var b bytes.Buffer
 
@@ -137,7 +140,7 @@ func (con *Connection) pinFile(data []byte, token string) (string, string, error
 	h := sha256.New()
 
 	if _, err := io.Copy(h, bytes.NewReader(data)); err != nil {
-		log.Fatal(err)
+		return "", "", err
 	}
 
 	w.Close()
@@ -148,11 +151,7 @@ func (con *Connection) pinFile(data []byte, token string) (string, string, error
 		return "", "", err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	if token == "" {
-		req.Header.Set("Authorization", con.getToken())
-	} else {
-		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
-	}
+	req.Header.Set("Authorization", con.getToken())
 
 	tr := &http.Transport{
 		DisableKeepAlives: true,
@@ -188,7 +187,7 @@ func (con *Connection) pinFile(data []byte, token string) (string, string, error
 	}
 }
 
-func (con *Connection) commit(commit Commit, token string) (string, string, error) {
+func (con *Connection) commit(commit Commit) (string, string, error) {
 
 	marshalled, err := json.Marshal(commit)
 	if err != nil {
@@ -200,11 +199,7 @@ func (con *Connection) commit(commit Commit, token string) (string, string, erro
 		return "", "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if token == "" {
-		req.Header.Set("Authorization", con.getToken())
-	} else {
-		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
-	}
+	req.Header.Set("Authorization", con.getToken())
 
 	tr := &http.Transport{
 		DisableKeepAlives: true,
@@ -251,51 +246,64 @@ func (con *Connection) commit(commit Commit, token string) (string, string, erro
 }
 
 func (c *Connector) CreateConnection(defUid uuid.UUID, config *structpb.Struct, logger *zap.Logger) (base.IConnection, error) {
+	def, err := c.GetConnectorDefinitionByUid(defUid)
+	if err != nil {
+		return nil, err
+	}
 	return &Connection{
-		BaseConnection: base.BaseConnection{Logger: logger},
-		connector:      c,
-		defUid:         defUid,
-		config:         config,
+		BaseConnection: base.BaseConnection{
+			Logger: logger, DefUid: defUid,
+			Config:     config,
+			Definition: def,
+		},
+		connector: c,
 	}, nil
 }
 
-func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorPB.DataPayload, error) {
+func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, error) {
 
-	var output []*connectorPB.DataPayload
+	if err := con.ValidateInput(inputs, "default"); err != nil {
+		return nil, err
+	}
+	var outputs []*structpb.Struct
 
-	for _, dataPayload := range inputs {
-		var assetCids []*structpb.Value
-		var assetUrls []*structpb.Value
-		for _, image := range dataPayload.Images {
+	for _, input := range inputs {
 
-			paramFields := dataPayload.Metadata.GetFields()["numbers"].GetStructValue().GetFields()
-			paramCustomFields := paramFields["custom"].GetStructValue().GetFields()
-			paramCustomLicenseFields := paramCustomFields["license"].GetStructValue().GetFields()
-			commitCustom := CommitCustom{
-				GeneratedThrough:  "https://console.instill.tech",
-				GeneratedBy:       paramCustomFields["generated_by"].GetStringValue(),
-				CreatorWallet:     paramCustomFields["creator_wallet"].GetStringValue(),
-				DigitalSourceType: paramCustomFields["digital_source_type"].GetStringValue(),
-				MiningPreference:  paramCustomFields["mining_preference"].GetStringValue(),
-				License: CommitCustomLicense{
-					Name:     paramCustomLicenseFields["name"].GetStringValue(),
-					Document: paramCustomLicenseFields["document"].GetStringValue(),
-				},
+		assetUrls := []string{}
+
+		inputStruct := Input{}
+		err := base.ConvertFromStructpb(input, &inputStruct)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, image := range inputStruct.Images {
+			imageBytes, err := b64.StdEncoding.DecodeString(image)
+			if err != nil {
+				return nil, err
 			}
 
-			if con.needUploadTextsToMetadata() {
-				commitCustom.Texts = dataPayload.Texts
-			}
-			if con.needUploadStructuredDataToMetadata() {
-				commitCustom.StructuredData = dataPayload.StructuredData
-			}
-			if con.needUploadMetadataToMetadata() {
-				metadata := dataPayload.Metadata
-				delete(metadata.GetFields(), "numbers")
-				commitCustom.Metadata = metadata
+			var commitCustom *CommitCustom
+			if inputStruct.Custom != nil {
+				var commitCustomLicense *CommitCustomLicense
+				if inputStruct.Custom.License != nil {
+					commitCustomLicense = &CommitCustomLicense{
+						Name:     inputStruct.Custom.License.Name,
+						Document: inputStruct.Custom.License.Document,
+					}
+				}
+				commitCustom = &CommitCustom{
+					DigitalSourceType: inputStruct.Custom.DigitalSourceType,
+					MiningPreference:  inputStruct.Custom.MiningPreference,
+					GeneratedThrough:  "https://console.instill.tech",
+					GeneratedBy:       inputStruct.Custom.GeneratedBy,
+					CreatorWallet:     inputStruct.Custom.CreatorWallet,
+					License:           commitCustomLicense,
+				}
+
 			}
 
-			cid, sha256hash, err := con.pinFile(image, paramFields["capture_token"].GetStringValue())
+			cid, sha256hash, err := con.pinFile(imageBytes)
 			if err != nil {
 				return nil, err
 			}
@@ -303,38 +311,37 @@ func (con *Connection) Execute(inputs []*connectorPB.DataPayload) ([]*connectorP
 			assetCid, _, err := con.commit(Commit{
 				AssetCid:              cid,
 				AssetSha256:           sha256hash,
-				EncodingFormat:        http.DetectContentType(image),
+				EncodingFormat:        http.DetectContentType(imageBytes),
 				AssetTimestampCreated: time.Now().Unix(),
-				AssetCreator:          paramFields["asset_creator"].GetStringValue(),
-				Abstract:              paramFields["abstract"].GetStringValue(),
+				AssetCreator:          inputStruct.AssetCreator,
+				Abstract:              inputStruct.Abstract,
 				Custom:                commitCustom,
 				Testnet:               false,
-			}, paramFields["capture_token"].GetStringValue())
+			})
 
 			if err != nil {
 				return nil, err
 			}
-			assetCids = append(assetCids, structpb.NewStringValue(assetCid))
-			assetUrls = append(assetUrls, structpb.NewStringValue(fmt.Sprintf("https://nftsearch.site/asset-profile?cid=%s", assetCid)))
+			assetUrls = append(assetUrls, fmt.Sprintf("https://nftsearch.site/asset-profile?cid=%s", assetCid))
 		}
 
-		output = append(output, &connectorPB.DataPayload{
-			DataMappingIndex: dataPayload.DataMappingIndex,
-			Metadata: &structpb.Struct{
-				Fields: map[string]*structpb.Value{
-					"asset_urls": structpb.NewListValue(&structpb.ListValue{
-						Values: assetUrls,
-					}),
-					"asset_cids": structpb.NewListValue(&structpb.ListValue{
-						Values: assetCids,
-					}),
-				},
-			},
-		})
+		outputStruct := Output{
+			AssetUrls: assetUrls,
+		}
+
+		output, err := base.ConvertToStructpb(outputStruct)
+		if err != nil {
+			return nil, err
+		}
+		outputs = append(outputs, output)
 
 	}
 
-	return output, nil
+	if err := con.ValidateOutput(outputs, "default"); err != nil {
+		return nil, err
+	}
+
+	return outputs, nil
 
 }
 
@@ -361,8 +368,4 @@ func (con *Connection) Test() (connectorPB.Connector_State, error) {
 		return connectorPB.Connector_STATE_CONNECTED, nil
 	}
 	return connectorPB.Connector_STATE_ERROR, nil
-}
-
-func (con *Connection) GetTask() (taskPB.Task, error) {
-	return taskPB.Task_TASK_UNSPECIFIED, nil
 }

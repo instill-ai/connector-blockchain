@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Numbers Protocol Blockchain Component Spec",
+  "type": "object",
+  "required": ["images"],
+  "properties": {
+    "images": {
+      "type": "string",
+      "format": "instill-template-image-array",
+      "$ref": "data.json#/default/input/properties/images"
+    },
+    "asset_creator": {
+      "type": "string",
+      "format": "instill-template-text",
+      "$ref": "data.json#/default/input/properties/asset_creator"
+    },
+    "abstract": {
+      "type": "string",
+      "format": "instill-template-text",
+      "$ref": "data.json#/default/input/properties/abstract"
+    },
+    "custom": {
+      "title": "Custom",
+      "type": "object",
+      "properties": {
+        "digital_source_type": {
+          "$ref": "data.json#/default/input/properties/custom/properties/digital_source_type"
+        },
+        "mining_preference": {
+          "$ref": "data.json#/default/input/properties/custom/properties/mining_preference"
+        },
+        "generated_through": {
+          "type": "string",
+          "format": "instill-template-text",
+          "$ref": "data.json#/default/input/properties/custom/properties/generated_through"
+        },
+        "generated_by": {
+          "type": "string",
+          "format": "instill-template-text",
+          "$ref": "data.json#/default/input/properties/custom/properties/generated_by"
+        },
+        "creator_wallet": {
+          "type": "string",
+          "format": "instill-template-text",
+          "$ref": "data.json#/default/input/properties/custom/properties/creator_wallet"
+        },
+        "license": {
+          "title": "License",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "format": "instill-template-text",
+              "$ref": "data.json#/default/input/properties/custom/properties/license/properties/name"
+            },
+            "document": {
+              "type": "string",
+              "format": "instill-template-text",
+              "$ref": "data.json#/default/input/properties/custom/properties/license/properties/document"
+            }
+          }
+        }
+      }
+    }
+  }
+}
