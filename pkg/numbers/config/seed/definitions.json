@@ -1,63 +1,25 @@
 [
   {
     "custom": false,
-    "documentationUrl": "https://www.instill.tech/docs/vdp/blockchain-connectors/numbers",
+    "documentation_url": "https://www.instill.tech/docs/vdp/blockchain-connectors/numbers",
     "icon": "numbers.svg",
-    "iconUrl": "",
+    "icon_url": "",
     "id": "blockchain-numbers",
     "public": true,
     "spec": {
-      "documentationUrl": "https://www.instill.tech/docs/vdp/blockchain-connectors/numbers",
-      "connectionSpecification": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "Numbers Protocol Blockchain Connector Spec",
-        "type": "object",
-        "required": [
-          "capture_token",
-          "asset_type",
-          "metadata_texts",
-          "metadata_structured_data",
-          "metadata_metadata"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "capture_token": {
-            "title": "Capture token",
-            "description": "Fill your Capture token in the Capture App. To access your tokens, you need a Capture App account and you can sign in with email or wallet to acquire the Capture Token.",
-            "type": "string",
-            "credential_field": true
-          },
-          "asset_type": {
-            "title": "Asset type",
-            "description": "The type of asset to be added to the Blockchain.",
-            "type": "string",
-            "default": "images",
-            "enum": [ "images" ]
-          },
-          "metadata_texts": {
-            "title": "'texts' input as asset metadata",
-            "description": "Include the `texts` input in the asset metadata on the Blockchain.",
-            "type": "boolean",
-            "default": false
-          },
-          "metadata_structured_data": {
-            "title": "'structured_data' input as asset metadata",
-            "description": "Include the `structured_data` input in the asset metadata on the Blockchain.",
-            "type": "boolean",
-            "default": false
-          },
-          "metadata_metadata": {
-            "title": "'metadata' input as asset metadata",
-            "description": "Include the `metadata` input in the asset metadata on the Blockchain.",
-            "type": "boolean",
-            "default": true
-          }
-        }
+      "resource_specification": {
+        "$ref": "connector.json"
+      },
+      "component_specification": {
+        "$ref": "component.json"
+      },
+      "openapi_specifications": {
+        "$ref": "openapi.json"
       }
     },
     "title": "Numbers Protocol",
     "tombstone": false,
     "uid": "70d8664a-d512-4517-a5e8-5d4da81756a7",
-    "vendorAttributes": {}
+    "vendor_attributes": {}
   }
 ]
