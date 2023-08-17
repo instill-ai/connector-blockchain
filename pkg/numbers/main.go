@@ -345,11 +345,11 @@ func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, e
 
 }
 
-func (con *Connection) Test() (connectorPB.Connector_State, error) {
+func (con *Connection) Test() (connectorPB.ConnectorResource_State, error) {
 
 	req, err := http.NewRequest("GET", ApiUrlMe, nil)
 	if err != nil {
-		return connectorPB.Connector_STATE_ERROR, nil
+		return connectorPB.ConnectorResource_STATE_ERROR, nil
 	}
 	req.Header.Set("Authorization", con.getToken())
 
@@ -362,10 +362,10 @@ func (con *Connection) Test() (connectorPB.Connector_State, error) {
 		defer res.Body.Close()
 	}
 	if err != nil {
-		return connectorPB.Connector_STATE_ERROR, nil
+		return connectorPB.ConnectorResource_STATE_ERROR, nil
 	}
 	if res.StatusCode == http.StatusOK {
-		return connectorPB.Connector_STATE_CONNECTED, nil
+		return connectorPB.ConnectorResource_STATE_CONNECTED, nil
 	}
-	return connectorPB.Connector_STATE_ERROR, nil
+	return connectorPB.ConnectorResource_STATE_ERROR, nil
 }
