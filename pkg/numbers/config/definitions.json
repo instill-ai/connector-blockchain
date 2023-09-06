@@ -43,7 +43,7 @@
                 "instillUpstreamTypes": [
                   "reference"
                 ],
-                "oneOf": [
+                "anyOf": [
                   {
                     "type": "string",
                     "pattern": "^\\{.*\\}$",
@@ -59,7 +59,7 @@
                   "value",
                   "reference"
                 ],
-                "oneOf": [
+                "anyOf": [
                   {
                     "type": "string",
                     "instillUpstreamType": "value"
@@ -79,7 +79,7 @@
                   "value",
                   "reference"
                 ],
-                "oneOf": [
+                "anyOf": [
                   {
                     "type": "string",
                     "instillUpstreamType": "value"
@@ -103,7 +103,7 @@
                       "value",
                       "reference"
                     ],
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "enum": [
@@ -131,7 +131,7 @@
                       "value",
                       "reference"
                     ],
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "enum": [
@@ -161,7 +161,7 @@
                       "value",
                       "reference"
                     ],
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "default": "https://console.instill.tech",
@@ -182,7 +182,7 @@
                       "value",
                       "reference"
                     ],
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "instillUpstreamType": "value"
@@ -202,7 +202,7 @@
                       "value",
                       "reference"
                     ],
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "instillUpstreamType": "value"
@@ -226,7 +226,7 @@
                           "value",
                           "reference"
                         ],
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "type": "string",
                             "instillUpstreamType": "value"
@@ -246,7 +246,7 @@
                           "value",
                           "reference"
                         ],
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "type": "string",
                             "instillUpstreamType": "value"
