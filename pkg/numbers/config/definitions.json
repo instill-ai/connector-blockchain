@@ -259,6 +259,77 @@
                         ]
                       }
                     }
+                  },
+                  "metadata": {
+                    "title": "Metadata",
+                    "type": "object",
+                    "properties": {
+                      "pipeline": {
+                        "title": "Pipeline",
+                        "type": "object",
+                        "properties": {
+                          "uid": {
+                            "title": "Pipeline UID",
+                            "description": "",
+                            "instillFormat": "text",
+                            "instillUpstreamTypes": [
+                              "reference"
+                            ],
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^\\{.*\\}$",
+                                "instillUpstreamType": "reference"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "title": "Pipeline Name",
+                            "description": "",
+                            "instillFormat": "text",
+                            "instillUpstreamTypes": [
+                              "reference"
+                            ],
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^\\{.*\\}$",
+                                "instillUpstreamType": "reference"
+                              }
+                            ]
+                          },
+                          "recipe": {
+                            "title": "Pipeline Recipe",
+                            "type": "object",
+                            "instillFormat": "object",
+                            "instillUpstreamTypes": [
+                              "reference"
+                            ]
+                          }
+                        }
+                      },
+                      "owner": {
+                        "title": "Owner",
+                        "type": "object",
+                        "properties": {
+                          "uid": {
+                            "title": "Owner UID",
+                            "description": "",
+                            "instillFormat": "text",
+                            "instillUpstreamTypes": [
+                              "reference"
+                            ],
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^\\{.*\\}$",
+                                "instillUpstreamType": "reference"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -410,6 +481,56 @@
                                             "value",
                                             "reference"
                                           ]
+                                        }
+                                      }
+                                    },
+                                    "metadata": {
+                                      "title": "Metadata",
+                                      "type": "object",
+                                      "properties": {
+                                        "pipeline": {
+                                          "title": "Pipeline",
+                                          "type": "object",
+                                          "properties": {
+                                            "uid": {
+                                              "title": "Pipeline UID",
+                                              "type": "string",
+                                              "instillFormat": "text",
+                                              "instillUpstreamTypes": [
+                                                "reference"
+                                              ]
+                                            },
+                                            "name": {
+                                              "title": "Pipeline Name",
+                                              "type": "string",
+                                              "instillFormat": "text",
+                                              "instillUpstreamTypes": [
+                                                "reference"
+                                              ]
+                                            },
+                                            "recipe": {
+                                              "title": "Pipeline Recipe",
+                                              "type": "object",
+                                              "instillFormat": "object",
+                                              "instillUpstreamTypes": [
+                                                "reference"
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "owner": {
+                                          "title": "Owner",
+                                          "type": "object",
+                                          "properties": {
+                                            "uid": {
+                                              "title": "Owner UID",
+                                              "type": "string",
+                                              "instillFormat": "text",
+                                              "instillUpstreamTypes": [
+                                                "reference"
+                                              ]
+                                            }
+                                          }
                                         }
                                       }
                                     }

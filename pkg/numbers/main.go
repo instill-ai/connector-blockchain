@@ -59,6 +59,15 @@ type CommitCustom struct {
 	GeneratedBy       *string              `json:"generatedBy,omitempty"`
 	CreatorWallet     *string              `json:"creatorWallet,omitempty"`
 	License           *CommitCustomLicense `json:"license,omitempty"`
+	Metadata          *struct {
+		Pipeline *struct {
+			Uid    *string     `json:"uid,omitempty"`
+			Recipe interface{} `json:"recipe,omitempty"`
+		} `json:"pipeline,omitempty"`
+		Owner *struct {
+			Uid *string `json:"uid,omitempty"`
+		} `json:"owner,omitempty"`
+	} `json:"instillMetadata,omitempty"`
 }
 type Commit struct {
 	AssetCid              string        `json:"assetCid"`
@@ -85,6 +94,15 @@ type Input struct {
 			Name     *string `json:"name,omitempty"`
 			Document *string `json:"document,omitempty"`
 		} `json:"license,omitempty"`
+		Metadata *struct {
+			Pipeline *struct {
+				Uid    *string     `json:"uid,omitempty"`
+				Recipe interface{} `json:"recipe,omitempty"`
+			} `json:"pipeline,omitempty"`
+			Owner *struct {
+				Uid *string `json:"uid,omitempty"`
+			} `json:"owner,omitempty"`
+		} `json:"metadata,omitempty"`
 	} `json:"custom,omitempty"`
 }
 
@@ -299,6 +317,7 @@ func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, e
 					GeneratedBy:       inputStruct.Custom.GeneratedBy,
 					CreatorWallet:     inputStruct.Custom.CreatorWallet,
 					License:           commitCustomLicense,
+					Metadata:          inputStruct.Custom.Metadata,
 				}
 
 			}
