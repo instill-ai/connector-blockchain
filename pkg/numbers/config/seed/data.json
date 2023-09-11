@@ -20,7 +20,7 @@
         },
         "asset_creator": {
           "title": "Asset Creator",
-          "description": "Name of the asser creator.",
+          "description": "Name of the asset creator.",
           "type": "string",
           "instillFormat": "text",
           "instillUpstreamTypes": ["value", "reference"]
@@ -106,7 +106,8 @@
                   "description": "URL of the license file.",
                   "type": "string",
                   "instillFormat": "text",
-                  "instillUpstreamTypes": ["value", "reference"]
+                  "instillUpstreamTypes": ["value", "reference"],
+                  "instillEnableCopyButton": true
                 }
               }
             }
@@ -123,9 +124,12 @@
           "description": "Asset Urls",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "instillFormat": "text",
+            "instillEnableCopyButton": true
           },
-          "instillFormat": "text_array"
+          "instillFormat": "text_array",
+          "instillEnableCopyButton": true
         }
       }
     }
