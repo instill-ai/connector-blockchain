@@ -19,6 +19,8 @@ Please refer to [here](../README.md#prerequisites) to make sure your environment
 
 ### Development
 
+Please refer to [Component](https://github.com/instill-ai/component/blob/main/.github/CONTRIBUTING.md)
+
 ### Sending PRs
 
 Please take these general guidelines into consideration when you are sending a PR:
