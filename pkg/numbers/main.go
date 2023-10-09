@@ -19,7 +19,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/instill-ai/component/pkg/base"
-	"github.com/instill-ai/component/pkg/configLoader"
 
 	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 )
@@ -28,24 +27,21 @@ const ApiUrlPin = "https://eoqctv92ahgrcif.m.pipedream.net"
 const ApiUrlCommit = "https://eo883tj75azolos.m.pipedream.net"
 const ApiUrlMe = "https://api.numbersprotocol.io/api/v3/auth/users/me"
 
-const vendorName = "numbers"
-
-//go:embed config/definitions.json
-var definitionJson []byte
-
 var once sync.Once
 var connector base.IConnector
 
+//go:embed config/definitions.json
+var definitionsJSON []byte
+
+//go:embed config/tasks.json
+var tasksJSON []byte
+
 type Connector struct {
-	base.BaseConnector
-	options ConnectorOptions
+	base.Connector
 }
 
-type ConnectorOptions struct{}
-
-type Connection struct {
-	base.BaseExecution
-	connector *Connector
+type Execution struct {
+	base.Execution
 }
 
 type CommitCustomLicense struct {
@@ -110,25 +106,17 @@ type Output struct {
 	AssetUrls []string `json:"asset_urls"`
 }
 
-func Init(logger *zap.Logger, options ConnectorOptions) base.IConnector {
+func Init(logger *zap.Logger) base.IConnector {
 	once.Do(func() {
 
-		loader := configLoader.InitJSONSchema(logger)
-		connDefs, err := loader.LoadConnector(vendorName, connectorPB.ConnectorType_CONNECTOR_TYPE_BLOCKCHAIN, definitionJson)
-		if err != nil {
-			panic(err)
-		}
-
 		connector = &Connector{
-			BaseConnector: base.BaseConnector{Logger: logger},
-			options:       options,
+			Connector: base.Connector{
+				Component: base.Component{Logger: logger},
+			},
 		}
-
-		for idx := range connDefs {
-			err := connector.AddConnectorDefinition(uuid.FromStringOrNil(connDefs[idx].GetUid()), connDefs[idx].GetId(), connDefs[idx])
-			if err != nil {
-				logger.Warn(err.Error())
-			}
+		err := connector.LoadConnectorDefinitions(definitionsJSON, tasksJSON)
+		if err != nil {
+			logger.Fatal(err.Error())
 		}
 
 	})
@@ -139,7 +127,7 @@ func getToken(config *structpb.Struct) string {
 	return fmt.Sprintf("token %s", config.GetFields()["capture_token"].GetStringValue())
 }
 
-func (con *Connection) pinFile(data []byte) (string, string, error) {
+func (con *Execution) pinFile(data []byte) (string, string, error) {
 
 	var b bytes.Buffer
 
@@ -205,7 +193,7 @@ func (con *Connection) pinFile(data []byte) (string, string, error) {
 	}
 }
 
-func (con *Connection) commit(commit Commit) (string, string, error) {
+func (con *Execution) commit(commit Commit) (string, string, error) {
 
 	marshalled, err := json.Marshal(commit)
 	if err != nil {
@@ -262,27 +250,14 @@ func (con *Connection) commit(commit Commit) (string, string, error) {
 	}
 
 }
-
-func (c *Connector) CreateExecution(defUid uuid.UUID, config *structpb.Struct, logger *zap.Logger) (base.IExecution, error) {
-	def, err := c.GetConnectorDefinitionByUid(defUid)
-	if err != nil {
-		return nil, err
-	}
-	return &Connection{
-		BaseExecution: base.BaseExecution{
-			Logger: logger, DefUid: defUid,
-			Config:                config,
-			OpenAPISpecifications: def.Spec.OpenapiSpecifications,
-		},
-		connector: c,
-	}, nil
+func (c *Connector) CreateExecution(defUID uuid.UUID, task string, config *structpb.Struct, logger *zap.Logger) (base.IExecution, error) {
+	e := &Execution{}
+	e.Execution = base.CreateExecutionHelper(e, c, defUID, task, config, logger)
+	return e, nil
 }
 
-func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, error) {
+func (e *Execution) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, error) {
 
-	if err := con.ValidateInput(inputs, "default"); err != nil {
-		return nil, err
-	}
 	var outputs []*structpb.Struct
 
 	for _, input := range inputs {
@@ -322,12 +297,12 @@ func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, e
 
 			}
 
-			cid, sha256hash, err := con.pinFile(imageBytes)
+			cid, sha256hash, err := e.pinFile(imageBytes)
 			if err != nil {
 				return nil, err
 			}
 
-			assetCid, _, err := con.commit(Commit{
+			assetCid, _, err := e.commit(Commit{
 				AssetCid:              cid,
 				AssetSha256:           sha256hash,
 				EncodingFormat:        http.DetectContentType(imageBytes),
@@ -354,10 +329,6 @@ func (con *Connection) Execute(inputs []*structpb.Struct) ([]*structpb.Struct, e
 		}
 		outputs = append(outputs, output)
 
-	}
-
-	if err := con.ValidateOutput(outputs, "default"); err != nil {
-		return nil, err
 	}
 
 	return outputs, nil
