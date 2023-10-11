@@ -25,7 +25,7 @@
         }
       }
     },
-    "available_tasks": ["default"],
+    "available_tasks": ["TASK_COMMIT"],
     "title": "Numbers Protocol",
     "tombstone": false,
     "type": "CONNECTOR_TYPE_BLOCKCHAIN",
